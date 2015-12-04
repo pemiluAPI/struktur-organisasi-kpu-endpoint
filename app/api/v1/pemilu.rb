@@ -75,5 +75,105 @@ module Pemilu
           }
       end
     end
+    
+    resource :list_personnel_sekjen do
+      desc "Return all Personnel Sekjen List"
+      get do
+        sekjen_array = Array.new
+        
+        # Prepare conditions based on params
+        valid_params = {
+          personil_id: 'id',
+          struktur_id: 'struktur_id',
+          jabatan_id: 'jabatan_id',
+          bagian_subbag_id: 'bagian_subbagian_id'
+        }
+        
+        conditions = Hash.new
+        valid_params.each_pair do |key, value|
+          conditions[value.to_sym] = params[key.to_sym] unless params[key.to_sym].blank?
+        end
+        
+        #set limit, default is `10`
+        limit = (params[:limit].to_i == 0 || params[:limit].empty?) ? 10 : params[:limit]
+        
+        # Build Data
+        Personil.includes(:so, :position, :divsubdivision)
+          .where(conditions)
+          .limit(limit)
+          .offset(params[:offset])
+          .order("id asc")
+          .each do |sekjen|
+            sekjen_array << {
+              id: sekjen.id,
+              struktur_sekjen: {
+                struktur_id: sekjen.struktur_id,
+                nama_struktur: sekjen.so.nama_so
+              },
+              jabatan: {
+                jabatan_id: sekjen.jabatan_id,
+                nama_jabatan: sekjen.position.nama_jabatan
+              },
+              nama: sekjen.nama,
+              golongan: sekjen.golongan,
+              no_induk: sekjen.no_induk,
+              Bagian: {
+                bagian_subbag: sekjen.bagian_subbagian_id,
+                nama_bagian: !sekjen.divsubdivision.blank? ? (!sekjen.divsubdivision.division.blank? ? sekjen.divsubdivision.division.nama_bagian : "0") : "0",
+                nama_subbagian: !sekjen.divsubdivision.blank? ? (!sekjen.divsubdivision.subdivision.blank? ? sekjen.divsubdivision.subdivision.nama_subbagian : "0") : "0"
+              }
+            }
+          end
+
+          # Send output as JSON format
+          {
+            results: {
+              count: sekjen_array.count,
+              total: Personil.where(conditions).count,
+              struktur_sekjen: sekjen_array
+            }
+          }
+      end
+    end
+    
+    resource :list_organisasi_sekjen do
+      desc "Return all Struktur Organisasi Sekjen"
+      get do
+        organisasi_sekjen = Array.new
+        
+        # Prepare conditions based on params
+        valid_params = {
+          organisasi_id: 'id'
+        }
+        
+        # conditions = Hash.new
+        # valid_params.each_pair do |key, value|
+          # conditions[value.to_sym] = params[key.to_sym] unless params[key.to_sym].blank?
+      # end
+      
+      #set limit, default is `10`
+      limit = params[:limit].to_i == 0 || params[:limit].empty? ? 10 : params[:limit]
+      
+      #build data
+      So.all
+        .limit(limit)
+        .offset(params[:offset])
+        .each do |sekjen|
+          organisasi_sekjen << {
+            organisasi_id: sekjen.id,
+            nama_organisasi: sekjen.nama_so
+          }
+        end
+        
+        #send output as json format
+        {
+          result: {
+            count: organisasi_sekjen.count,
+            total: So.all.count,
+            organisasi_sekjen: organisasi_sekjen
+          }
+        }
+      end
+    end
   end
 end
