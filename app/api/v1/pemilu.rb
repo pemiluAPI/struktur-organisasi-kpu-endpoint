@@ -118,7 +118,7 @@ module Pemilu
               golongan: sekjen.golongan,
               no_induk: sekjen.no_induk,
               Bagian: {
-                bagian_subbag: sekjen.bagian_subbagian_id,
+                bagian_subbag_id: sekjen.bagian_subbagian_id,
                 nama_bagian: !sekjen.divsubdivision.blank? ? (!sekjen.divsubdivision.division.blank? ? sekjen.divsubdivision.division.nama_bagian : "0") : "0",
                 nama_subbagian: !sekjen.divsubdivision.blank? ? (!sekjen.divsubdivision.subdivision.blank? ? sekjen.divsubdivision.subdivision.nama_subbagian : "0") : "0"
               }
